@@ -2,11 +2,12 @@ import streamlit as st
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 from datetime import datetime, timedelta
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # Load the model and tokenizer
 @st.cache_resource
 def load_model():
-    model_name = "bigscience/bloomz-1b7"  # You can change this to a different model if preferred
+    model_name = "bigscience/bloomz-1b7"  # or another appropriate model
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
     return tokenizer, model
