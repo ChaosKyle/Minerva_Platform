@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Meal Tracker</h1>
+    <form action="{{ url_for('add_meal') }}" method="post">
+        <input type="text" name="meal_name" placeholder="Meal name" required>
+        <select name="meal_type" required>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack">Snack</option>
+        </select>
+        <input type="number" name="calories" placeholder="Calories (optional)">
+        <button type="submit">Add Meal</button>
+    </form>
+    <h2>Meal History:</h2>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Meal</th>
+            <th>Type</th>
+            <th>Calories</th>
+        </tr>
+        {% for meal in meals|reverse %}
+        <tr>
+            <td>{{ meal.date.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ meal.name }}</td>
+            <td>{{ meal.type.capitalize() }}</td>
+            <td>{{ meal.calories if meal.calories else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
