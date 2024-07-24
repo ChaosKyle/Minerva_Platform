@@ -108,7 +108,7 @@ $htmlContent = @"
         <div class='box'><a href='http://localhost:8081'>Chore Tracking</a></div>
         <div class='box'><a href='http://localhost:8082'>Meal Planning</a></div>
         <div class='box'><a href='http://localhost:8083'>Fitness Planning</a></div>
-        <div class='box'><a href='http://localhost:8084'>Trip Planning</a></div>
+        <div class='box'><a href='http://localhost:8501'>Trip Planning</a></div>
         <div class='box'><a href='http://localhost:8085'>Google Calendar</a></div>
     </div>
 </body>
