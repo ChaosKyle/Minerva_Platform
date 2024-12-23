@@ -3,6 +3,8 @@ $alloyVersion = "v1.3.1"
 $installDir = Join-Path $env:LOCALAPPDATA "Grafana Alloy"
 $configDir = Join-Path $env:LOCALAPPDATA "Grafana Alloy\config"
 $dataDir = Join-Path $env:LOCALAPPDATA "Grafana Alloy\data"
+$lokiUrl = "http://loki.monitoring.svc.cluster.local:3100"
+$grafanaUrl = "http://grafana.monitoring.svc.cluster.local:3000"
 
 function Install-GrafanaAlloyWindows {
     $downloadUrl = "https://github.com/grafana/alloy/releases/download/$alloyVersion/alloy-windows-amd64.exe.zip"
@@ -36,7 +38,7 @@ logs:
   configs:
   - name: default
     clients:
-      - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+      - url: $lokiUrl/loki/api/v1/push
     positions:
       filename: $dataDir/positions.yaml
     scrape_configs:
@@ -114,10 +116,70 @@ traces:
     Write-Host "Grafana Alloy has been installed on Windows."
 }
 
+function Test-LokiConnection {
+    $testMessage = "Test log message from Grafana Alloy installation script"
+    $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() * 1000000 # Convert to nanoseconds
+    $body = @{
+        streams = @(
+            @{
+                stream = @{
+                    job = "grafana_alloy_install"
+                }
+                values = @(
+                    @($timestamp.ToString(), $testMessage)
+                )
+            }
+        )
+    } | ConvertTo-Json -Depth 4
+
+    try {
+        $response = Invoke-RestMethod -Uri "$lokiUrl/loki/api/v1/push" -Method Post -Body $body -ContentType 'application/json'
+        Write-Host "Successfully sent test log to Loki"
+        return $true
+    }
+    catch {
+        Write-Host "Failed to send test log to Loki: $_"
+        return $false
+    }
+}
+
+function Import-GrafanaDashboard {
+    $dashboardJson = Invoke-RestMethod -Uri "https://grafana.com/api/dashboards/14694/revisions/1/download"
+    $dashboardObject = @{
+        dashboard = $dashboardJson
+        overwrite = $true
+        message = "Imported Windows Exporter Dashboard"
+    } | ConvertTo-Json -Depth 10
+
+    try {
+        $response = Invoke-RestMethod -Uri "$grafanaUrl/api/dashboards/db" -Method Post -Body $dashboardObject -ContentType 'application/json' -Headers @{"Authorization" = "Bearer YOUR_GRAFANA_API_KEY"}
+        Write-Host "Successfully imported Windows Exporter Dashboard"
+        return $true
+    }
+    catch {
+        Write-Host "Failed to import dashboard: $_"
+        return $false
+    }
+}
+
 # Main execution
 try {
     Write-Host "Installing Grafana Alloy on Windows..."
     Install-GrafanaAlloyWindows
+
+    Write-Host "Testing connection to Loki..."
+    if (Test-LokiConnection) {
+        Write-Host "Loki connection test passed."
+    } else {
+        Write-Host "Loki connection test failed. Please check your configuration and network connectivity."
+    }
+
+    Write-Host "Importing Windows Exporter Dashboard to Grafana..."
+    if (Import-GrafanaDashboard) {
+        Write-Host "Dashboard imported successfully."
+    } else {
+        Write-Host "Failed to import dashboard. Please check your Grafana configuration and API key."
+    }
 
     Write-Host "Setup completed. Grafana Alloy is now installed on your Windows system."
     Write-Host "You can modify the Windows configuration file at: $configDir\config.yaml"

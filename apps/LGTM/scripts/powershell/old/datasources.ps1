@@ -12,6 +12,7 @@ function Create-Datasource($name, $type, $url) {
         "Accept" = "application/json"
         "Authorization" = "Bearer $ApiKey"
     }
+
     $body = @{
         name = $name
         type = $type
@@ -23,13 +24,7 @@ function Create-Datasource($name, $type, $url) {
     $apiUrl = "$GrafanaUrl/api/datasources"
     try {
         $result = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -Headers $headers
-        
-        if ($result.id) {
-            Write-Host ("Datasource " + $name + " created successfully with ID: " + $result.id)
-        } else {
-            Write-Host ("Datasource " + $name + " created but response was unexpected:")
-            $result | ConvertTo-Json | Write-Host
-        }
+        Write-Host ("Datasource " + $name + " created successfully with ID: " + $result.id)
     } catch {
         Write-Host ("Error creating datasource " + $name + ":")
         if ($_.Exception.Response -ne $null) {
@@ -70,9 +65,12 @@ try {
     }
 
     Write-Host "Creating datasources..."
-    Create-Datasource "Prometheus" "prometheus" "http://mimir-nginx.monitoring:80/prometheus"
-    Create-Datasource "Loki" "loki" "http://loki.monitoring:3100"
-    Create-Datasource "Tempo" "tempo" "http://tempo.monitoring:3200"  # Corrected port to 3200
+
+    # Local URLs assuming port-forwarding
+    Create-Datasource "Prometheus" "prometheus" "http://localhost:9009/prometheus"  # Mimir as Prometheus
+    Create-Datasource "Loki" "loki" "http://localhost:3100"
+    Create-Datasource "Tempo" "tempo" "http://localhost:3200"
+    Create-Datasource "Mimir" "prometheus" "http://localhost:9009"  # Assuming Mimir as Prometheus again
 
     Write-Host "Datasources setup completed."
 }
