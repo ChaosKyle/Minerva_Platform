@@ -1,23 +1,27 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minerva Platform</title>
-    <link rel='stylesheet' href='css/style.css'>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>Minerva</h1>
-    <div class='image-container'>
-        <img src='images/placeholder.png' alt='Cool minerva Image'>
-    </div>
-    <div class='container'>
-        <div class='box'><a href='http://localhost:8081'>Chore Tracking</a></div>
-        <div class='box'><a href='http://localhost:8082'>Meal Planning</a></div>
-        <div class='box'><a href='http://localhost:8503'>Fitness Planning</a></div>
-        <div class='box'><a href='http://localhost:8501'>Travel Planning</a></div>
-        <div class='box'><a href='http://localhost:8085'>Google Calendar</a></div>
-        <div class='box'><a href='http://localhost:3000'>Grafana</a></div>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Minerva</h1>
+            <img src="images/placeholder.png" alt="Minerva" class="minerva-image">
+        </div>
+        <div class="grid">
+            <a href="http://localhost:3000" class="card" target="_blank" rel="noopener noreferrer">
+                <span>Grafana</span>
+                <div class="shine"></div>
+            </a>
+            <a href="http://localhost:5678" class="card" target="_blank" rel="noopener noreferrer">
+                <span>n8n</span>
+                <div class="shine"></div>
+            </a>
+        </div>
     </div>
 </body>
 </html>

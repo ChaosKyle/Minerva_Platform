@@ -1,6 +1,7 @@
 param (
     [string]$SiteName = "Minerva",
     [string]$SitePath = "C:\inetpub\wwwroot\Minerva",
+    [string]$RootPath = "C:\Users\kylel\Lobby\Minerva",
     [int]$Port = 8500
 )
 
@@ -31,19 +32,22 @@ if (Get-Website -Name $SiteName) {
     Remove-Website -Name $SiteName
 }
 
-# --- 4. Create directory structure ---
-Write-Host "Creating directory structure..."
-$folders = @(
-    $SitePath,
-    "$SitePath\apps",
-    "$SitePath\css",
-    "$SitePath\images",
-    "$SitePath\scripts"
+# --- 4. Create root directory structure ---
+Write-Host "Creating root directory structure..."
+$rootDirs = @(
+    $RootPath,
+    "$RootPath\apps",
+    "$RootPath\css",
+    "$RootPath\images",
+    "$RootPath\scripts"
 )
 
-foreach ($folder in $folders) {
-    if (-not (Test-Path $folder)) {
-        New-Item -ItemType Directory -Path $folder -Force | Out-Null
+foreach ($dir in $rootDirs) {
+    if (-not (Test-Path $dir)) {
+        Write-Host "Creating directory: $dir"
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    } else {
+        Write-Host "Directory already exists: $dir"
     }
 }
 
@@ -230,12 +234,22 @@ span {
 }
 '@
 
-# --- 7. Write files ---
-Write-Host "Writing application files..."
-Set-Content -Path (Join-Path $SitePath "index.html") -Value $indexHtml
-Set-Content -Path (Join-Path $SitePath "css\styles.css") -Value $cssContent
+# --- 7. Write files to root directory ---
+Write-Host "Writing application files to root directory..."
+Set-Content -Path (Join-Path $RootPath "index.html") -Value $indexHtml
+Set-Content -Path (Join-Path $RootPath "css\styles.css") -Value $cssContent
 
-# --- 8. Create and configure IIS website ---
+# --- 8. Set up IIS site ---
+Write-Host "Setting up IIS site..."
+if (-not (Test-Path $SitePath)) {
+    New-Item -ItemType Directory -Path $SitePath -Force | Out-Null
+}
+
+# Copy files from root to IIS path
+Write-Host "Copying files to IIS directory..."
+Copy-Item -Path "$RootPath\*" -Destination $SitePath -Recurse -Force
+
+# --- 9. Create and configure IIS website ---
 Write-Host "Creating IIS website..."
 New-Website -Name $SiteName -PhysicalPath $SitePath -Port $Port -Force
 
@@ -244,7 +258,7 @@ Set-WebConfigurationProperty -PSPath "IIS:\Sites\$SiteName" `
     -Filter "system.webServer/security/authentication/anonymousAuthentication" `
     -Name "enabled" -Value "True"
 
-# --- 9. Start containers ---
+# --- 10. Start containers ---
 Write-Host "Starting Docker containers..."
 docker run -d --name grafana -p 3000:3000 grafana/grafana
 docker run -d --name n8n -p 5678:5678 n8nio/n8n
@@ -254,3 +268,5 @@ Write-Host "Minerva Platform should now be accessible at: http://localhost:$Port
 Write-Host "`nServices running on:"
 Write-Host "  - Grafana: http://localhost:3000"
 Write-Host "  - n8n:    http://localhost:5678"
+Write-Host "`nRoot directory: $RootPath"
+Write-Host "IIS directory: $SitePath"
